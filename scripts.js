@@ -33,11 +33,16 @@ const ticTacToe = (function(){
                         alert(`it's a draw!`);
                     }
                     newBoard();
-                    console.log(currTurn);
                 } else {
                     // computer's turn
-                    if (name != "computer"){
-                        computerPlay("easy");
+                    if (_players[0].name == "computer" || _players[1].name == "computer"){
+                        if (name != "computer"){
+                            if (gamesWon >= gamesPlayed / 2){
+                                computerPlay("normal");
+                            } else {
+                                computerPlay("easy");
+                            }
+                        }
                     }
                 }
             } else {
@@ -47,22 +52,39 @@ const ticTacToe = (function(){
     }
 
     function computerPlay(difficulty){
-        let index = 0;
-        if (_players[1].name == "computer"){
-            index = 1;
+        let index = 1;
+        if (_players[1].name != "computer"){
+            index = 0;
+            if (_players[0].name != "computer"){
+                // if both names are set, we don't want AI to play
+                return
+            }    
         }
-
         // the computer takes a turn
         if (index == currTurn){
+            let move = 4;
             if (difficulty === "easy"){
-                let randomNum = 4;
-                while (_plays[randomNum] != ''){
-                    randomNum = Math.floor(Math.random()*9);
+                while (_plays[move] != ''){
+                    move = Math.floor(Math.random()*9);
                 }
-                let elm = document.querySelector(`[data-square="${randomNum}"]`);
-                _players[index].play(elm);
-    
+            } else if (difficulty === "normal"){
+                for (let i = 0; i < 9; i++){
+                    let tempArray = [..._plays];
+                    if (_plays[i] == ''){
+                        tempArray[i] = _players[index].marker;
+                        result = checkWin(tempArray);
+                        if (result == true){
+                            move = i;
+                        }
+                    }
+                }
+                if (move == 4){
+                    computerPlay("easy");
+                    return;
+                }
             }
+            let elm = document.querySelector(`[data-square="${move}"]`);
+            _players[index].play(elm);
         } else {
             return
         }
@@ -71,50 +93,50 @@ const ticTacToe = (function(){
     // default players if none are set
     _players.push(new Player('x', 'x'), new Player('computer', 'o'));
 
-    const checkBoard = () => {
-        function checkWin(){
-            for (let i = 0; i < _plays.length; i++){
-                if (_plays[i] != ''){
-                    // diagnal wins
-                    if (i == 4){
-                        // center piece
-                        if (_plays[i] == _plays[0]){
-                            if (_plays[i] == _plays[8]){
-                                // top left through bottom right
-                                return true
-                            }
-                        } else if (_plays[i] == _plays[2]){
-                            if (_plays[i] == _plays[6]){
-                                // bottom left through top right
-                                return true
-                            }
-                        } else {
-                            continue
+    function checkWin(array){
+        for (let i = 0; i < array.length; i++){
+            if (array[i] != ''){
+                // diagnal wins
+                if (i == 4){
+                    // center piece
+                    if (array[i] == array[0]){
+                        if (array[i] == array[8]){
+                            // top left through bottom right
+                            return true
+                        }
+                    } else if (array[i] == array[2]){
+                        if (array[i] == array[6]){
+                            // bottom left through top right
+                            return true
+                        }
+                    } else {
+                        continue
+                    }
+                }
+                // three in a row horizontally
+                if (i % 3 == 0){
+                    if (array[i] == array[i+1]){
+                        if (array[i] == array[i+2]){
+                            // gg
+                            return true
                         }
                     }
-                    // three in a row horizontally
-                    if (i % 3 == 0){
-                        if (_plays[i] == _plays[i+1]){
-                            if (_plays[i] == _plays[i+2]){
-                                // gg
-                                return true
-                            }
-                        }
-                    } 
-                    if (i == 0 || i == 1 || i == 2){
-                        // top row going down
-                        if (_plays[i] == _plays[i+3]){
-                            if (_plays[i] == _plays[i+6]){
-                                // gg 
-                                return true
-                            }
+                } 
+                if (i == 0 || i == 1 || i == 2){
+                    // top row going down
+                    if (array[i] == array[i+3]){
+                        if (array[i] == array[i+6]){
+                            // gg 
+                            return true
                         }
                     }
                 }
             }
         }
-        
-        const result = checkWin();
+    }
+
+    const checkBoard = () => {        
+        const result = checkWin(_plays);
         if (result != true && _plays.includes('') === false){
             // if no one won yet the board is full, it has to be a draw
             return "draw";
@@ -178,7 +200,7 @@ const ticTacToe = (function(){
             }
             let newName = prompt('What is your name?');
             if (newName == null || newName == ''){
-                newName = `Set ${marker}`;
+                newName = marker;
             }
 
             setPlayer(index, newName, marker);

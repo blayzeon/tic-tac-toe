@@ -165,3 +165,14 @@ section{
     border-left: var(--border);
     border-top: var(--border);
 }
+
+@media (max-width: 40rem){
+    .container{
+        height: 20rem;
+        width: 20rem;
+    }
+    #popup{
+        height: 10rem;
+        width: 12rem;
+    }
+}

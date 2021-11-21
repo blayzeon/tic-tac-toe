@@ -33,6 +33,12 @@ const ticTacToe = (function(){
                         alert(`it's a draw!`);
                     }
                     newBoard();
+                    console.log(currTurn);
+                } else {
+                    // computer's turn
+                    if (name != "computer"){
+                        computerPlay("easy");
+                    }
                 }
             } else {
                 // play an animation where the letter shakes
@@ -40,12 +46,30 @@ const ticTacToe = (function(){
         }
     }
 
-    // default players if none are set
-    _players.push(new Player('x', 'x'), new Player('o', 'o'));
+    function computerPlay(difficulty){
+        let index = 0;
+        if (_players[1].name == "computer"){
+            index = 1;
+        }
 
-    function takeTurn(square){
-        _players[currTurn].play(square);
+        // the computer takes a turn
+        if (index == currTurn){
+            if (difficulty === "easy"){
+                let randomNum = 4;
+                while (_plays[randomNum] != ''){
+                    randomNum = Math.floor(Math.random()*9);
+                }
+                let elm = document.querySelector(`[data-square="${randomNum}"]`);
+                _players[index].play(elm);
+    
+            }
+        } else {
+            return
+        }
     }
+
+    // default players if none are set
+    _players.push(new Player('x', 'x'), new Player('computer', 'o'));
 
     const checkBoard = () => {
         function checkWin(){
@@ -89,6 +113,7 @@ const ticTacToe = (function(){
                 }
             }
         }
+        
         const result = checkWin();
         if (result != true && _plays.includes('') === false){
             // if no one won yet the board is full, it has to be a draw
@@ -100,6 +125,10 @@ const ticTacToe = (function(){
     }
 
     const newBoard = () =>{
+        function takeTurn(square){
+            _players[currTurn].play(square);
+        }
+
         // creates the board
         _plays = ['', '', '', '', '', '', '', '', ''];
         const squares = 9;
@@ -115,6 +144,10 @@ const ticTacToe = (function(){
         squareElm.forEach(square => {
             square.addEventListener('click', takeTurn.bind(this, square));
         });
+
+        // sets up the computer's turn
+        currTurn = gamesPlayed % 2;
+        computerPlay("easy");
     }
 
     // Startup functions & listeners

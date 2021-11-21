@@ -14,6 +14,31 @@ body, html{
     box-sizing: border-box;
 }
 
+@keyframes shake{
+    10%, 90%{
+        transform: translate3d(-0.1rem, 0, 0);
+        color: red;
+    }
+    20%, 80%{
+        transform: translate3d(0.2rem, 0, 0);
+    }
+    30%, 50%, 70%{
+        transform: translate3d(-0.4remx, 0, 0);
+    }
+    40%, 60%{
+        transform: translate3d(0.4rem, 0, 0);
+    }
+}
+
+@keyframes fadein{
+    from {
+        color: #666666;
+    }
+    to {
+        color: black;  
+    }
+}
+
 section{
     display: flex;
     align-items: center;
@@ -116,6 +141,7 @@ section{
     font-family: monospace;
     display: flex;
     align-items: center;
+    text-align: center;
     justify-content: center;
     font-size: 5rem;
     background: var(--cDefault);
@@ -125,9 +151,12 @@ section{
     user-select: none;
 }
 
+#board li span{
+    width: 100%;
+}
+
 #board li:hover{
     background: var(--cHighlight);
-    color: var(--cDefault);
 }
 
 #board li:nth-child(1){
@@ -164,6 +193,18 @@ section{
 #board li:nth-child(9){
     border-left: var(--border);
     border-top: var(--border);
+}
+
+.shake:active{
+    animation: shake 0.40s cubic-bezier(.10, .10, .10, .10) both;
+    transform: translate3d(0,0,0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+.fadein{
+    animation-name: fadein;
+    animation-duration: 4s;
 }
 
 @media (max-width: 40rem){

@@ -196,6 +196,7 @@ section{
 }
 
 .shake:active{
+    border: var(--border);
     animation: shake 0.40s cubic-bezier(.10, .10, .10, .10) both;
     transform: translate3d(0,0,0);
     backface-visibility: hidden;

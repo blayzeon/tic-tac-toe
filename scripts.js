@@ -1,11 +1,13 @@
 const ticTacToe = (function(){
     // html elements
     const boardContainer = document.querySelector('#board');
+    const popup = document.querySelector('#popup');
 
     // counters
     let currTurn = 0;
     let _plays = ['', '', '', '', '', '', '', '', ''];
     let _players = [];
+    let gameOver = false;
 
     function Player(name, marker, index, gamesWon=0){
         this.name = name
@@ -13,6 +15,9 @@ const ticTacToe = (function(){
         this.gamesWon = gamesWon;
         this.index = index;
         this.play = function (elm="computer"){
+            if (gameOver == true){
+                return;
+            }
             // check if we are a player or a computer
             let newElm = elm;
             if (name == "computer"){
@@ -48,26 +53,29 @@ const ticTacToe = (function(){
                     } else {
                         alert(`it's a draw!`);
                     }
-                    newBoard();
-                } else if (name != "computer" && _players[currTurn].name == "computer"){
+                    gameOver = true;
+                } else {
                     // computer's turn
-                    _players[currTurn].play();
+                    let delay = Math.floor(Math.random()*650);
+                    setTimeout(() => {
+                        _players[currTurn].play();
+                    }, 100 + delay);
                 }
                 return;
             } else {
                 // not a valid space;
-                if (document.body.contains(newElm.querySelector('span'))){
-                    newElm.querySelector('span').classList.remove('shake');
-                    newElm.querySelector('span').classList.add('shake');
-                    return;
-                }
+                return;
             }
         }
     }
 
     function computerPlay(cpu){
+        if (gameOver == true){
+            return;
+        }
+        
         // the computer takes a turn
-        let move = 4;
+        let move = Math.floor(Math.random()*9);
 
         function checkOutcome(player){
             for (let i = 0; i < 9; i++){
@@ -82,8 +90,9 @@ const ticTacToe = (function(){
             }
         }
 
+        // keeps track of the opponents
         let human = 0;
-        if (cpu = 0){
+        if (cpu == 0){
             human = 1;
         }
 
@@ -92,22 +101,20 @@ const ticTacToe = (function(){
         if (outcome != undefined){
             move = outcome;
         }else{
-            let human = 0;
-            if (_players[0].name == "computer"){
-                human = 1;
-            }
             let outcome2 = checkOutcome(human);
-            if (outcome2 != undefined){
+            if (move % 2 == 0 && outcome2 != undefined){
+                // sometimes will block the opponent from winning
                 move = outcome2;
             } else {
                 while (_plays[move] != ''){
+                    // ensures the computer plays a valid move
                     move = Math.floor(Math.random()*9);
                 }
             }
         }
 
         if (_plays[move] != ""){
-            console.log('invalid move')
+            console.log('invalid move');
         }
         return(move);
             
@@ -122,16 +129,10 @@ const ticTacToe = (function(){
                 // diagnal wins
                 if (i == 4){
                     // center piece
-                    if (array[i] == array[0]){
-                        if (array[i] == array[8]){
-                            // top left through bottom right
-                            return true
-                        }
-                    } else if (array[i] == array[2]){
-                        if (array[i] == array[6]){
-                            // bottom left through top right
-                            return true
-                        }
+                    if (array[i] == array[0] && array[i] == array[8]){
+                        return true
+                    } else if (array[i] == array[2] && array[i] == array[6]){
+                        return true
                     } else {
                         continue
                     }
@@ -170,6 +171,7 @@ const ticTacToe = (function(){
     }
 
     const newBoard = () =>{
+        gameOver = false;
         function takeTurn(square){
             _players[currTurn].play(square);
         }
@@ -186,12 +188,21 @@ const ticTacToe = (function(){
         boardContainer.innerHTML = newBoard;
         const squareElm = boardContainer.querySelectorAll('li');
 
-        squareElm.forEach(square => {
-            square.addEventListener('click', takeTurn.bind(this, square));
-        }); 
-
-        if (_players[currTurn].name == "computer"){
-            _players[currTurn].play();
+        if (_players[0].name != "computer" || _players[1].name != "computer"){
+            function shakeMe(square){
+                if (square.querySelector('span').classList.contains('shake') == true){
+                    square.square.querySelector('span').classList.remove('shake');
+                }
+                square.classList.add('shake');
+            }
+            // only add the event listners if a human is playing
+            squareElm.forEach(square => {
+                square.addEventListener('click', takeTurn.bind(this, square));
+                square.addEventListener('click', shakeMe.bind(this, square));
+                square.addEventListener('click', ()=>{
+                    popup.classList.add('hidden'); // prevents the window staying open while a game is going
+                });
+            }); 
         }
     }
 
@@ -200,7 +211,6 @@ const ticTacToe = (function(){
         // functions
         const toggle = () =>{
             // show/hide the new game menu
-            const popup = document.querySelector('#popup');
             popup.classList.toggle('hidden');
 
             currTurn = 0;
@@ -208,8 +218,7 @@ const ticTacToe = (function(){
 
             if (document.querySelector('#controls').innerHTML == ""){
                 (document.querySelector('#controls').appendChild(btnElm));
-            }
-                       
+            }     
         }
 
         const askName = (marker) =>{
@@ -226,14 +235,16 @@ const ticTacToe = (function(){
             if (newName == null || newName == ''){
                 newName = marker;
             }
+            let lowerName = newName.toLowerCase();
 
-            setPlayer(index, newName, marker);
-            return newName;
+            setPlayer(index, lowerName, marker);
+            return lowerName;
         }
 
         // html elements
         const setPlayer = document.querySelectorAll('[data-btn]');
         const close = document.querySelector('#confirm');
+        const info = document.querySelector('#info');
         const btnElm = document.createElement('button');
         
         // new game button
@@ -242,15 +253,23 @@ const ticTacToe = (function(){
         btnElm.addEventListener('click', toggle);
 
         // event listeners
+        info.addEventListener('click', ()=>{
+            alert('"x" is default a player and "o" is default a computer.  If you wish to play versus a friend, set a name for both players, otherwise you can name either player "computer" to replace it with an AI.');
+        })
         close.addEventListener('click', toggle);
+        close.addEventListener('click', ()=>{
+            if (_players[currTurn].name == "computer"){
+                _players[currTurn].play();
+            }
+        });
         boardContainer.appendChild(btnElm);
         setPlayer.forEach(player =>{
             player.addEventListener('click', ()=>{
                 const marker = player.dataset.btn;
                 let newName = askName(marker);
-                player.innerText = newName;
+                playerName = newName;
             });
-        })
+        });
     })();
 
 })();
